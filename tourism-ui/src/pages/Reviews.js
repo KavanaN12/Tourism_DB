@@ -14,14 +14,16 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 
-export default function Reviews() {
+export default function Reviews({ user }) {   // <-- now receiving logged-in user
   const [reviews, setReviews] = useState([]);
-  const [userName, setUserName] = useState("");
   const [comment, setComment] = useState("");
   const [placeName, setPlaceName] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
   const [filterPlace, setFilterPlace] = useState("");
+  const [rating, setRating] = useState(5);
+
+  const sqlUserId = user?.user_id;  // <-- real user ID
 
   // LIVE DATA LISTENER
   useEffect(() => {
@@ -44,21 +46,27 @@ export default function Reviews() {
   // ADD REVIEW
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!userName || !comment || !placeName) return;
+    if (!user) {
+      alert("Login required to add review.");
+      return;
+    }
+
+    if (!comment || !placeName) return;
 
     await addDoc(collection(db, "reviews"), {
-      userName,
-      comment,
+      userId: sqlUserId,     // <-- track owner
+      userName: user.full_name,
       placeName,
+      rating,
+      comment,
       createdAt: serverTimestamp(),
     });
 
-    setUserName("");
     setComment("");
     setPlaceName("");
   };
 
-  // FILTER (WHERE query)
+  // FILTER
   const handleFilter = async () => {
     if (!filterPlace) return;
 
@@ -68,12 +76,7 @@ export default function Reviews() {
     );
 
     const snapshot = await getDocs(q);
-    const filteredData = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    setReviews(filteredData);
+    setReviews(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
   };
 
   // DELETE
@@ -81,7 +84,7 @@ export default function Reviews() {
     await deleteDoc(doc(db, "reviews", id));
   };
 
-  // UPDATE
+  // EDIT
   const startEdit = (review) => {
     setEditingId(review.id);
     setEditText(review.comment);
@@ -100,47 +103,45 @@ export default function Reviews() {
 
   return (
     <div>
-      <h2>Firestore Reviews (NoSQL)</h2>
+      <h2>Reviews (Firestore - NoSQL)</h2>
 
-      {/* ADD FORM */}
-      <form className="mt-3" onSubmit={handleSubmit}>
-        <div className="mb-2">
-          <label className="form-label">Your Name</label>
+      {/* ADD REVIEW FORM */}
+      {user && (
+        <form className="mt-3" onSubmit={handleSubmit}>
           <input
-            className="form-control"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-          />
-        </div>
-
-        <div className="mb-2">
-          <label className="form-label">Place Name</label>
-          <input
-            className="form-control"
+            className="form-control mb-2"
+            placeholder="Place Name"
             value={placeName}
             onChange={(e) => setPlaceName(e.target.value)}
           />
-        </div>
 
-        <div className="mb-2">
-          <label className="form-label">Comment</label>
           <textarea
-            className="form-control"
+            className="form-control mb-2"
+            placeholder="Comment"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
           />
-        </div>
 
-        <button className="btn btn-success mt-2">Add Review</button>
-      </form>
+          <input
+            type="number"
+            min="1"
+            max="5"
+            className="form-control mb-2"
+            value={rating}
+            onChange={(e) => setRating(Number(e.target.value))}
+          />
+
+          <button className="btn btn-success">Add Review</button>
+        </form>
+      )}
 
       <hr />
 
-      {/* FILTER SECTION */}
+      {/* FILTER */}
       <div className="d-flex gap-2 mb-3">
         <input
           className="form-control"
-          placeholder="Filter by place (ex: Hampi)"
+          placeholder="Filter by place (e.g. Hampi)"
           value={filterPlace}
           onChange={(e) => setFilterPlace(e.target.value)}
         />
@@ -149,8 +150,7 @@ export default function Reviews() {
         </button>
       </div>
 
-      {/* REVIEWS LIST */}
-      <h4>Reviews</h4>
+      {/* LIST */}
       <ul className="list-group">
         {reviews.map((r) => (
           <li key={r.id} className="list-group-item d-flex justify-content-between align-items-center">
@@ -165,23 +165,26 @@ export default function Reviews() {
               ) : (
                 <> {r.comment} </>
               )}
-              <div className="text-muted">({r.userName})</div>
+              <div className="text-muted">({r.userName}) ⭐ {r.rating}</div>
             </div>
 
-            <div className="d-flex gap-2">
-              {editingId === r.id ? (
-                <button className="btn btn-success btn-sm" onClick={saveEdit}>
-                  Save
+            {/* 👇 Only show edit/delete if current user owns the review */}
+            {r.userId === sqlUserId && (
+              <div className="d-flex gap-2">
+                {editingId === r.id ? (
+                  <button className="btn btn-success btn-sm" onClick={saveEdit}>
+                    Save
+                  </button>
+                ) : (
+                  <button className="btn btn-warning btn-sm" onClick={() => startEdit(r)}>
+                    Edit
+                  </button>
+                )}
+                <button className="btn btn-danger btn-sm" onClick={() => deleteReview(r.id)}>
+                  Delete
                 </button>
-              ) : (
-                <button className="btn btn-warning btn-sm" onClick={() => startEdit(r)}>
-                  Edit
-                </button>
-              )}
-              <button className="btn btn-danger btn-sm" onClick={() => deleteReview(r.id)}>
-                Delete
-              </button>
-            </div>
+              </div>
+            )}
           </li>
         ))}
       </ul>

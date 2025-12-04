@@ -1,9 +1,9 @@
-// Import the functions you need from the SDKs you need
+// Import SDKs
 import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-import { getFirestore } from "firebase/firestore"; 
-// Your web app's Firebase configuration
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+
+// Your config
 const firebaseConfig = {
   apiKey: "AIzaSyCUgZNGR9V8uTxw845cD0rcJ4s2BETV054",
   authDomain: "tourism-app-4f4fb.firebaseapp.com",
@@ -13,6 +13,9 @@ const firebaseConfig = {
   appId: "1:1070274272206:web:0f6e9bb1e53e005723699f"
 };
 
-// Initialize Firebase
+// Initialize Firebase app ONCE
 const app = initializeApp(firebaseConfig);
+
+// Export usable services
 export const db = getFirestore(app);
+export const auth = getAuth(app);
