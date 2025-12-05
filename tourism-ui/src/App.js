@@ -12,7 +12,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 
 // Pages
 import Places from "./pages/Places";
-import Signup from "./pages/SignUp";
+import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AddPlace from "./pages/AddPlace";
