@@ -19,6 +19,8 @@ import AddPlace from "./pages/AddPlace";
 import Reviews from "./pages/Reviews";
 import Favourites from "./pages/Favourites";
 import Stats from "./pages/Stats";
+import SQLPlayground from "./pages/SQLPlayground";
+import NoSQLPlayground from "./pages/NoSQLPlayground";
 
 function AppContent() {
   const [firebaseUser, setFirebaseUser] = useState(null);
@@ -122,6 +124,9 @@ function AppContent() {
           <Route path="/reviews" element={<Reviews user={sqlUser} />} />
           <Route path="/favourites" element={<Favourites user={sqlUser} />} />
           <Route path="/stats" element={<Stats />} />
+          <Route path="/sql-playground" element={<SQLPlayground />} />
+          <Route path="/nosql-playground" element={<NoSQLPlayground />} />
+
         </Routes>
       </div>
     </>

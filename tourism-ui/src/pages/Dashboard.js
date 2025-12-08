@@ -26,6 +26,15 @@ export default function Dashboard({ user }) {
         <Link className="dash-card" to="/stats">
           📊 Stats & Insights
         </Link>
+
+        <Link className="dash-card" to="/sql-playground">
+          🧪 SQL Playground
+        </Link>
+
+        <Link className="dash-card" to="/nosql-playground">
+          🔥 Firestore Playground
+        </Link>
+
       </div>
     </div>
   );

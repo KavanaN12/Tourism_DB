@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";   // <-- REQUIRED
+import { Link } from "react-router-dom";
 
 export default function Places({ user, guestMode = false }) {
   const [places, setPlaces] = useState([]);
@@ -11,10 +11,14 @@ export default function Places({ user, guestMode = false }) {
     axios
       .get("http://localhost:5000/api/places")
       .then((res) => {
-        setPlaces(res.data);
+        // FIX: Extract array correctly from backend response
+        setPlaces(res.data.data || []);
         setLoading(false);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.error("Failed to load places:", err);
+        setLoading(false);
+      });
   }, []);
 
   const handleAddFavourite = async (placeId) => {
@@ -44,8 +48,12 @@ export default function Places({ user, guestMode = false }) {
 
       {!user && (
         <div className="mb-3">
-          <Link className="btn btn-primary me-2" to="/login">Login</Link>
-          <Link className="btn btn-success" to="/signup">Signup</Link>
+          <Link className="btn btn-primary me-2" to="/login">
+            Login
+          </Link>
+          <Link className="btn btn-success" to="/signup">
+            Signup
+          </Link>
         </div>
       )}
 
@@ -64,7 +72,7 @@ export default function Places({ user, guestMode = false }) {
           {places.map((p) => (
             <tr key={p.place_id}>
               <td>{p.place_name}</td>
-              <td>{p.category}</td>
+              <td>{p.category || "—"}</td>
               <td>{p.state_name}</td>
 
               {!guestMode && (
